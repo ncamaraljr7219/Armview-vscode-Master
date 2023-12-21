@@ -1,0 +1,12 @@
+{
+    "editor.codeActionsOnSave": {
+        "source.fixAll.eslint": "explicit"
+    },
+    "eslint.format.enable": true,
+    "[typescript]": {
+        "editor.defaultFormatter": "dbaeumer.vscode-eslint"
+    },
+    "yaml.schemas": {
+      "https://json.schemastore.org/github-workflow.json": "file:///home/user/dev/armview-vscode/.github/workflows/build.yaml"
+    }
+}

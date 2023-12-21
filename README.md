@@ -9,17 +9,19 @@ You can drag and move icons as you wish, zoom in and out with the mouse wheel an
 
 Extension as been tested successfully against all 900+ [Azure Quickstart Templates](https://github.com/Azure/azure-quickstart-templates) 😁
 
-![s1](assets/readme/screen1.png)
+![image](https://github.com/ncamaraljr7219/Armview-vscode-Master/assets/91233007/a2cca381-759b-4949-b403-cea60e8ae31b)
 
-![s2](assets/readme/screen2.png)
+![image](https://github.com/ncamaraljr7219/Armview-vscode-Master/assets/91233007/8e55feca-9001-4050-81ab-bdb642cc413d)
 
-![s3](assets/readme/screen3.png)
+![image](https://github.com/ncamaraljr7219/Armview-vscode-Master/assets/91233007/5b165ce7-7461-4c31-b283-6a82149a8e05)
+
 
 # Usage
 
 - Open a ARM template JSON file, and ensure it is active/focused
   - Click the eye symbol in the top right of the editor tab bar
-  - ![toolbar](assets/readme/icon.png)
+    
+  ![image](https://github.com/ncamaraljr7219/Armview-vscode-Master/assets/91233007/8b2307d3-b080-4444-ba8f-3d47407143b8)
 - Or:
   - Open the VS Code command pallet with `Ctrl+Shift+P` or `⇧⌘P` on a mac
   - Start typing `ARM Viewer`
@@ -50,6 +52,40 @@ By default the extension will try to use any `defaultValues` found in the parame
 
 To apply a set of input parameters and overrides to the view, click 'Params' toolbar button. You will be prompted for a ARM parameters JSON file (e.g. `azuredeploy.parameters.json`). The values in the parameters JSON fill will be used in place of values set in the template
 
+**azuredeploy.parameters.json**
+```
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+         "hostingPlanName": {
+            "value": "asp-sonarqube"
+        },
+         "webSiteName": {
+            "value": "wa-sonarqube"
+        },
+         "sqlserverName": {
+            "value": "sqlsrv-sonarqube"
+        },
+        "databaseName": {
+            "value": "sqldb-sonarqube"
+        },
+        "skuName": {
+            "value": "F1"
+        },
+        "skuCapacity": {
+            "value": 1
+        },
+        "sqlAdministratorLogin": {
+            "value": "## TO BE DEFINED ##"
+        },
+        "sqlAdministratorLoginPassword": {
+            "value": "## TO BE DEFINED ##"
+        }   
+    }
+}
+```
+
 ## Resource Filters
 
 The view can sometimes get very crowded, especially when you have many resources of the same time (e.g. NSG rules or Key Vault secrets). Click the 'Filter' toolbar button to apply a filter to the view. You will be prompted for a input string:
@@ -65,6 +101,79 @@ The extension will attempt to locate and display linked templates, these resourc
 
 - If the resolved linked template URL is externally accessible, it will be downloaded and used. Results are cached to stop excessive HTTP calls.
 - If the URL is not accessible, then an attempt is made to load the file locally based on a guess from the filename and parent dir extracted from the URL, e.g. `nested/linked.json`
+
+**linked.json**
+```
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "simpleParam": {
+      "defaultValue": "A simple name",
+      "type": "string"
+    }
+  },
+  "variables": {},
+  "resources": [
+    {
+      "name": "directLink",
+      "type": "microsoft.resources/deployments",
+      "properties": {
+        "templateLink": {
+          "uri": "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/quickstarts/microsoft.kubernetes/aks/azuredeploy.json"
+        }
+      }
+    },
+    {
+      "name": "local1",
+      "type": "microsoft.resources/deployments",
+      "properties": {
+        "templateLink": {
+          "uri": "foo/blah/basic.json"
+        }
+      }
+    },
+    {
+      "name": "local2",
+      "type": "microsoft.resources/deployments",
+      "properties": {
+        "templateLink": {
+          "uri": "{f}/web.json?rubbish=1"
+        }
+      },
+      "dependsOn": ["web2"]
+    },
+    {
+      "name": "web",
+      "type": "microsoft.resources/deployments",
+      "properties": {
+        "templateLink": {
+          "uri": "http://example.net/web.json"
+        }
+      }
+    },
+    {
+      "name": "web2",
+      "type": "microsoft.resources/deployments",
+      "properties": {
+        "templateLink": {
+          "uri": "http://example.net/nested2/linked.json"
+        }
+      }
+    },
+    {
+      "name": "two-deep",
+      "type": "microsoft.resources/deployments",
+      "properties": {
+        "templateLink": {
+          "uri": "http://example.net/nested2/two-deep.json"
+        }
+      }
+    }
+  ]
+}
+```
+
 - If that fails, then the local filesystem of the VS Code workspace will be searched for the file. Some assumptions are made in this search:
   - The search will only happen if the linked file has a _different_ filename from the main/master template being viewed. Otherwise the search would just find the main template being viewed.
   - The linked template file should located somewhere under the path of the main template, sub-folders will be searched. If the file resides elsewhere outside this path it will not be located.
@@ -87,10 +196,3 @@ ARM templates go outside the JSON specification and break it in a couple of area
 - Support for comments in the JSON file (aka JSONC)
 - Allowing the use of multi-line strings
   The extension supports both of these as far as is reasonably possible, multi-line strings in particular has no known spec on how it should be supported. The extension is also aware of the language server provided by the 'Azure Resource Manager Tools' extension and will accept files set to 'arm-template' as the language type.
-
-## Limitations & Known Issues
-
-- The code attempts to find the links (`dependsOn` relationships) between ARM resources, however due to the _many_ subtle and complex ways these relationships can be defined & expressed, certain links may not be picked up & displayed. Oct 2020 - Parsing for nested resources has been improved.
-- Icons for the most commonly used & popular resource types have been added, however not every resource is covered (There's simply too many and no canonical source). The default ARM cube icon will be shown as a fallback. Get in touch if you want a icon added for a particular resource type.
-- Resolving names & other properties for resources is attempted, but due to programmatic way these are generally defined with ARM functions and expressions, full name resolution is not always possible.
-- Templates using the loop functions `copy` & `copyIndex` to create multiple resources will not be rendered correctly due to limitations on evaluating the dynamic iterative state of the template.
